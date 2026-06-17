@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recipe Entity Linker — Roadmap</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍳</text></svg>">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <nav class="navbar" id="top">
+    <div class="nav-inner wrap">
+      <a class="nav-brand" href="#top">
+        <span class="logo">🍳</span>
+        <span>Recipe&nbsp;Entity&nbsp;Linker</span>
+      </a>
+      <div class="nav-links">
+        <a href="#search">Search</a>
+        <a href="/docs" target="_blank" rel="noopener">API</a>
+      </div>
+      <div class="nav-stats">
+        <span class="pill" id="pillRecipes">…</span>
+        <span class="pill" id="pillUsda">…</span>
+        <span class="pill pill-engine" id="pillEngine">…</span>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="wrap">
+      <h1>Follow an ingredient to its USDA match</h1>
+      <p class="tagline">Type a Macedonian (or English) ingredient and watch the agent reason through a 5-stage roadmap to its standardized USDA FoodData Central entry.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- ============ SMART SEARCH (one box for everything) ============ -->
+    <section class="panel" id="search">
+      <h2 class="panel-title">Search</h2>
+      <p class="panel-sub">Type an <b>ingredient</b> (e.g. павлака, olive oil) or a <b>recipe / dish</b> (e.g. торта, chocolate cake). The model decides which: an ingredient runs the 5-stage roadmap, a recipe shows matching recipes below.</p>
+      <div class="search-row">
+        <input id="q" type="text" autocomplete="off" placeholder="Search an ingredient or a recipe…">
+        <button id="goBtn" class="btn-primary">Search&nbsp;▶</button>
+      </div>
+      <div class="chips" id="exampleChips">
+        <span class="chip" data-v="павлака">павлака</span>
+        <span class="chip" data-v="сирење">сирење</span>
+        <span class="chip" data-v="пилешко">пилешко</span>
+        <span class="chip" data-v="olive oil">olive oil</span>
+        <span class="chip" data-v="торта">торта</span>
+        <span class="chip" data-v="chocolate cake">chocolate cake</span>
+      </div>
+    </section>
+
+    <!-- ============ RECIPE RESULTS (when the query is a recipe) ============ -->
+    <section class="panel hidden" id="recipes">
+      <div class="results-head">
+        <h2 class="panel-title" id="recipesTitle">Recipes</h2>
+        <span class="results-meta" id="recipesMeta"></span>
+      </div>
+      <div id="recipeResults" class="recipe-grid"></div>
+      <div class="pager" id="pager"></div>
+      <div id="recipeDetail" class="recipe-detail hidden"></div>
+    </section>
+
+    <!-- ============ ROADMAP (when the query is an ingredient) ============ -->
+    <section id="roadmap" class="roadmap hidden" aria-live="polite">
+      <div id="destination" class="destination"></div>
+      <div class="tracker" id="tracker">
+        <div class="node" data-i="0"><span class="dot">1</span><span class="lbl">Analyze</span></div>
+        <div class="seg" data-i="0"><i></i></div>
+        <div class="node" data-i="1"><span class="dot">2</span><span class="lbl">Decide</span></div>
+        <div class="seg" data-i="1"><i></i></div>
+        <div class="node" data-i="2"><span class="dot">3</span><span class="lbl">Context</span></div>
+        <div class="seg" data-i="2"><i></i></div>
+        <div class="node" data-i="3"><span class="dot">4</span><span class="lbl">Search</span></div>
+        <div class="seg" data-i="3"><i></i></div>
+        <div class="node" data-i="4"><span class="dot">5</span><span class="lbl">Evaluate</span></div>
+      </div>
+      <div class="stations" id="stations"></div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">Recipe Entity Linker · Macedonian ingredients → USDA FoodData Central</div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

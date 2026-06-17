@@ -1,0 +1,11 @@
+# Core
+anthropic>=0.28.0
+openai>=1.30.0
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.7.0
+python-dotenv>=1.0.0
+
+# Optional (for production semantic search)
+# sentence-transformers>=3.0.0
+# faiss-cpu>=1.8.0

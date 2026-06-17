@@ -1,1 +1,0 @@
-"""Entity Linking Explorer package."""
