@@ -228,6 +228,16 @@ main{padding:34px 0 76px}
 .usda-badge{background:#d1f5d3;color:#155724;border-radius:8px;padding:3px 10px;font-family:ui-monospace,monospace;font-weight:700;font-size:.85rem}
 .reasoning{margin-top:9px;background:#f7f8fc;border:1px solid var(--line);border-radius:9px;padding:10px 13px;font-size:.92rem}
 .reasoning b{display:block;margin-bottom:3px;color:var(--brand-d);font-size:.8rem;text-transform:uppercase;letter-spacing:.03em}
+.summary-box{margin-top:9px;background:#eef6ff;border:1px solid #d6e6fb;border-radius:9px;padding:10px 13px;font-size:.92rem}
+.summary-box b{display:block;margin-bottom:3px;color:#1d4ed8;font-size:.8rem;text-transform:uppercase;letter-spacing:.03em}
+
+/* consolidated result card (valuable info only — no step cards) */
+.result-card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--done);border-radius:12px;box-shadow:var(--shadow);padding:16px 18px}
+.result-card .kv{margin:0 0 10px;font-size:.96rem}
+.cands-exp{margin-top:12px;border-top:1px solid var(--line);padding-top:9px}
+.cands-exp summary{cursor:pointer;font-weight:700;font-size:.86rem;color:var(--muted)}
+.cands{margin-top:8px}
+.trace-exp .trace-body{padding:12px 15px}
 
 /* loader */
 .loader{display:flex;align-items:center;gap:12px;color:var(--muted);padding:14px 4px;font-weight:600}
@@ -262,6 +272,34 @@ main{padding:34px 0 76px}
 .pg-btn:hover:not(:disabled){background:#e6e9f2}
 .pg-btn:disabled{opacity:.4;cursor:default}
 .pg-info{color:var(--muted);font-size:.88rem;font-weight:700}
+
+/* ---------- opened recipe: full detail + analyze-all ---------- */
+.rd-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.rd-head h3{margin:0;font-size:1.3rem;font-weight:800}
+.rd-src{font-size:.85rem;color:var(--brand-d);text-decoration:none;font-weight:600}
+.rd-src:hover{text-decoration:underline}
+.rd-tags{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px}
+.rd-tag{background:#f1f3f9;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:.78rem;font-weight:600}
+.rd-cols{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:14px;align-items:start}
+@media (max-width:760px){ .rd-cols{grid-template-columns:1fr} }
+.rd-col h4{margin:0 0 10px;font-size:1.05rem;font-weight:800}
+.rd-instr{margin:0 0 12px;background:#f7f8fc;border:1px solid var(--line);border-radius:10px;padding:7px 13px}
+.rd-instr summary{cursor:pointer;font-weight:700;font-size:.9rem;color:var(--ink)}
+.rd-instr ol{margin:9px 0 4px;padding-left:20px}
+.rd-instr li{margin:5px 0;font-size:.91rem;line-height:1.5}
+.ingr-label{font-weight:700;margin:0 0 7px}
+.ingr-table,.summary-table{width:100%;border-collapse:collapse;font-size:.9rem}
+.ingr-table th,.ingr-table td,.summary-table th,.summary-table td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}
+.ingr-table th,.summary-table th{font-size:.74rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:700}
+.ingr-table td:first-child{white-space:nowrap;color:var(--muted);width:34%}
+.summary-table td.mono{font-family:ui-monospace,monospace;font-size:.8rem}
+.success-line{color:var(--done);font-weight:800;margin:20px 0 8px}
+#mapping h5{margin:18px 0 9px;font-size:1.02rem;font-weight:800}
+.trace-exp{border:1px solid var(--line);border-radius:11px;margin:8px 0;background:#fff;box-shadow:var(--shadow)}
+.trace-exp summary{cursor:pointer;padding:11px 15px;font-weight:700;font-size:.95rem}
+.trace-exp[open] summary{border-bottom:1px solid var(--line)}
+.stations.static{padding:12px 15px 6px}
+.stations.static .station{opacity:1;transform:none}
 
 /* ---------- footer ---------- */
 .site-footer{border-top:1px solid var(--line);padding:18px 0;color:var(--muted);font-size:.85rem;background:#fff}

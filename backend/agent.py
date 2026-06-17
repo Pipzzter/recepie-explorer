@@ -78,6 +78,7 @@ class AgentTrace:
     confidence: int = 0
     confidence_level: str = "low"
     reasoning: str = ""
+    product_summary: str = ""
     stages_completed: list[str] = field(default_factory=list)
     processing_time_ms: int = 0
 
@@ -651,6 +652,20 @@ class EntityLinkingAgent:
         return "recipe" if len(q.split()) >= 3 else "ingredient"
 
     # ------------------------------------------------------------------
+    # Product summary — short LLM description of the chosen USDA entry
+    # ------------------------------------------------------------------
+    def _summarize_product(self, ingredient_original: str, english: str, usda_name: str) -> str:
+        """One- or two-sentence description of the chosen USDA product (uses the existing LLM; no extra API key)."""
+        if not self.client:
+            return ""
+        return self._llm(
+            "In ONE or TWO short sentences, describe the USDA food product for someone who mapped a "
+            "Macedonian cooking ingredient to it. Say what the product is and its general nutritional "
+            "character (e.g. high in fat, protein or carbs; calorie-dense; low-fat). Plain text, no lists.",
+            f"Macedonian ingredient: {ingredient_original} ({english})\nChosen USDA product: {usda_name}",
+        ).strip()
+
+    # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
     def link(self, ingredient_name: str) -> AgentTrace:
@@ -700,6 +715,7 @@ class EntityLinkingAgent:
             best.selected = True
             trace.selected_usda_id = best.usda_id
             trace.selected_usda_name = best.name
+            trace.product_summary = self._summarize_product(ingredient_name, english, best.name)
         trace.confidence = conf
         trace.confidence_level = lv
         trace.reasoning = reason

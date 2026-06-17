@@ -147,6 +147,7 @@ class TraceOut(BaseModel):
     confidence: int
     confidence_level: str
     reasoning: str
+    product_summary: str
     stages_completed: list[str]
     processing_time_ms: int
 
@@ -181,6 +182,7 @@ def _trace_to_out(trace: AgentTrace) -> TraceOut:
         confidence=trace.confidence,
         confidence_level=trace.confidence_level,
         reasoning=trace.reasoning,
+        product_summary=trace.product_summary,
         stages_completed=trace.stages_completed,
         processing_time_ms=trace.processing_time_ms,
     )

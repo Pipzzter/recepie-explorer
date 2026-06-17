@@ -29,7 +29,7 @@
   <header class="hero">
     <div class="wrap">
       <h1>Follow an ingredient to its USDA match</h1>
-      <p class="tagline">Type a Macedonian (or English) ingredient and watch the agent reason through a 5-stage roadmap to its standardized USDA FoodData Central entry.</p>
+      <p class="tagline">Type a Macedonian (or English) ingredient and the agent links it to its standardized USDA FoodData Central entry — with a plain-language summary of what it is.</p>
     </div>
   </header>
 
@@ -64,21 +64,10 @@
       <div id="recipeDetail" class="recipe-detail hidden"></div>
     </section>
 
-    <!-- ============ ROADMAP (when the query is an ingredient) ============ -->
+    <!-- ============ RESULT (when the query is an ingredient) ============ -->
     <section id="roadmap" class="roadmap hidden" aria-live="polite">
       <div id="destination" class="destination"></div>
-      <div class="tracker" id="tracker">
-        <div class="node" data-i="0"><span class="dot">1</span><span class="lbl">Analyze</span></div>
-        <div class="seg" data-i="0"><i></i></div>
-        <div class="node" data-i="1"><span class="dot">2</span><span class="lbl">Decide</span></div>
-        <div class="seg" data-i="1"><i></i></div>
-        <div class="node" data-i="2"><span class="dot">3</span><span class="lbl">Context</span></div>
-        <div class="seg" data-i="2"><i></i></div>
-        <div class="node" data-i="3"><span class="dot">4</span><span class="lbl">Search</span></div>
-        <div class="seg" data-i="3"><i></i></div>
-        <div class="node" data-i="4"><span class="dot">5</span><span class="lbl">Evaluate</span></div>
-      </div>
-      <div class="stations" id="stations"></div>
+      <div id="result" class="result"></div>
     </section>
 
   </main>

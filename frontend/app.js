@@ -1,129 +1,53 @@
 "use strict";
 
-/* ---------- tiny helpers ---------- */
+/* ---------- helpers ---------- */
 const $  = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 const flagFor = (lang) => (lang === "mk" ? "🇲🇰" : lang === "en" ? "🇬🇧" : "🌐");
-const langName = (lang) => ({ mk: "Macedonian", en: "English" }[lang] || lang || "—");
 const confColor = (lvl) => ({ high: "#16a34a", med: "#f59e0b", low: "#dc3545" }[lvl] || "#6b7280");
 const confWord = (lvl) => ({ high: "High", med: "Medium", low: "Low" }[lvl] || lvl || "");
+function fillBars(root) { $$("[data-w]", root).forEach((b) => (b.style.width = b.getAttribute("data-w"))); }
 
-const STEP = 430; // ms between roadmap stations filling in
-
-/* ---------- toolcall renderer ---------- */
-function toolCallHTML(trace, needle) {
-  const tc = (trace.tool_calls || []).find((t) => t.name.includes(needle));
-  if (!tc) return "";
-  return `<div class="toolcall"><span class="tn">${esc(tc.name)}</span>(${esc(
-    JSON.stringify(tc.args)
-  )})<br><span class="tr">→ ${esc(tc.result_summary)}</span></div>`;
+/* ---------- result card: only the valuable info ---------- */
+function resultHTML(trace) {
+  if (!trace.selected_usda_id) {
+    return `<div class="result-card">${
+      trace.reasoning
+        ? `<div class="reasoning"><b>Why no match</b>${esc(trace.reasoning)}</div>`
+        : `<div class="muted">No confident USDA match for this ingredient.</div>`}</div>`;
+  }
+  const translated = trace.detected_language !== "en";
+  const transLine = translated
+    ? `<div class="kv">Translated <code>${esc(trace.ingredient_original)}</code> → <code>${esc(trace.english_translation)}</code></div>`
+    : "";
+  const all = trace.candidates || [];
+  const cands = all.slice(0, 8).map((c) => {
+    const pct = Math.round((c.score || 0) * 100);
+    return `<div class="cand ${c.selected ? "win" : ""}">
+      <span class="pct">${pct}%</span>
+      <span class="bar"><i data-w="${pct}%"></i></span>
+      <span class="nm">${esc(c.name)}</span>
+      <span class="id">${esc(c.usda_id)}${c.selected ? ' <span class="check">✓</span>' : ""}</span>
+    </div>`;
+  }).join("");
+  return `<div class="result-card">
+    ${transLine}
+    ${trace.product_summary ? `<div class="summary-box"><b>About this food</b>${esc(trace.product_summary)}</div>` : ""}
+    ${trace.reasoning ? `<div class="reasoning"><b>Why this match</b>${esc(trace.reasoning)}</div>` : ""}
+    ${cands ? `<details class="cands-exp"><summary>Other USDA matches considered (${all.length})</summary><div class="cands">${cands}</div></details>` : ""}
+  </div>`;
 }
 
-/* ---------- per-stage card content ---------- */
-function stageContent(i, trace) {
-  if (i === 0) {
-    const translated = trace.detected_language !== "en";
-    return `
-      <div class="kv">Detected language: <b>${flagFor(trace.detected_language)} ${esc(langName(trace.detected_language))}</b></div>
-      <div class="kv">${
-        translated
-          ? `Original <code>${esc(trace.ingredient_original)}</code> <span class="arrow">→</span> English <code>${esc(trace.english_translation)}</code>`
-          : `Already English: <code>${esc(trace.ingredient_original)}</code>`
-      }</div>`;
-  }
-  if (i === 1) {
-    return trace.needs_context
-      ? `This term looks <b>ambiguous</b> — it could map to several different USDA entries, so recipe context is especially useful.`
-      : `This term is fairly <b>specific</b>. The agent still checks how it is actually used in recipes (below).`;
-  }
-  if (i === 2) {
-    const recipes = (trace.context_recipes || [])
-      .map((c) => `<div class="ctx-recipe"><b>${esc(c.title)}</b><br><small>${esc(c.usage_note)}</small></div>`)
-      .join("");
-    const body = recipes ||
-      `<span class="muted">No recipes in the dataset use this exact term — the agent searches USDA directly.</span>`;
-    return toolCallHTML(trace, "recipe_context") + body;
-  }
-  if (i === 3) {
-    const cands = (trace.candidates || []).slice(0, 8).map((c) => {
-      const pct = Math.round((c.score || 0) * 100);
-      return `<div class="cand ${c.selected ? "win" : ""}">
-        <span class="pct">${pct}%</span>
-        <span class="bar"><i data-w="${pct}%"></i></span>
-        <span class="nm">${esc(c.name)}</span>
-        <span class="id">${esc(c.usda_id)}${c.selected ? ' <span class="check">✓</span>' : ""}</span>
-      </div>`;
-    }).join("") || `<span class="muted">No candidates returned.</span>`;
-    return `<div class="kv">Search query: <code>${esc(trace.search_query)}</code></div>
-      ${toolCallHTML(trace, "usda")}
-      <div style="margin-top:6px">${cands}</div>`;
-  }
-  // i === 4 — Evaluate
-  if (!trace.selected_usda_id)
-    return `<span class="muted">No confident USDA match.</span>
-      ${trace.reasoning ? `<div class="reasoning"><b>Agent's reasoning</b>${esc(trace.reasoning)}</div>` : ""}`;
-  const c = confColor(trace.confidence_level);
-  return `
-    <div class="kv"><span class="usda-badge">USDA ${esc(trace.selected_usda_id)}</span>
-      &nbsp;<b>${esc(trace.selected_usda_name)}</b></div>
-    <div class="conf-wrap">
-      <div class="conf-track"><i data-w="${trace.confidence}%" style="background:${c}"></i></div>
-      <span class="conf-label" style="color:${c}">${trace.confidence}% · ${esc(confWord(trace.confidence_level))}</span>
-    </div>
-    ${trace.reasoning ? `<div class="reasoning"><b>Agent's reasoning</b>${esc(trace.reasoning)}</div>` : ""}`;
-}
-
-const STAGES = [
-  { title: "Analyze",        tag: "language + translation" },
-  { title: "Decide context", tag: "ambiguity check" },
-  { title: "Fetch context",  tag: "recipe co-occurrence" },
-  { title: "Search USDA",    tag: "keyword + Jaccard match" },
-  { title: "Evaluate",       tag: "select best + confidence" },
-];
-
-function resetTracker() {
-  $$(".node", $("#tracker")).forEach((n) => n.classList.remove("done", "active", "skip"));
-  $$(".seg", $("#tracker")).forEach((s) => s.classList.remove("fill", "skip"));
-}
-function fillBars(stationEl) {
-  $$("[data-w]", stationEl).forEach((b) => (b.style.width = b.getAttribute("data-w")));
-}
-
-/* ---------- play the roadmap (all 5 stages always run) ---------- */
-async function playRoadmap(trace) {
-  const stationsEl = $("#stations");
+/* ---------- single ingredient result ---------- */
+function renderResult(trace) {
   const dest = $("#destination");
-  dest.classList.remove("show");
-  resetTracker();
-
-  stationsEl.innerHTML = STAGES.map((s, i) =>
-    `<div class="station ${i === 2 ? "ctx" : ""}" data-i="${i}">
-      <div class="st-badge">${i + 1}</div>
-      <div class="st-card">
-        <div class="st-head"><span class="st-title">${esc(s.title)}</span><span class="st-tag">${esc(s.tag)}</span></div>
-        <div class="st-content">${stageContent(i, trace)}</div>
-      </div>
-    </div>`).join("");
-
-  const nodes = $$(".node", $("#tracker"));
-  const segs = $$(".seg", $("#tracker"));
-  const stations = $$(".station", stationsEl);
-
-  for (let i = 0; i < STAGES.length; i++) {
-    if (i > 0) segs[i - 1].classList.add("fill");
-    nodes[i].classList.add("active");
-    await sleep(STEP);
-    nodes[i].classList.remove("active");
-    nodes[i].classList.add("done");
-    stations[i].classList.add("show");
-    fillBars(stations[i]);
-    await sleep(120);
-  }
+  const out = $("#result");
+  out.innerHTML = resultHTML(trace);
+  fillBars(out);
 
   const hasMatch = !!trace.selected_usda_id;
   dest.className = "destination" + (hasMatch ? "" : " nomatch");
@@ -139,10 +63,8 @@ async function playRoadmap(trace) {
        </div>`
     : `<div class="dest-from"><span class="flag">${flagFor(trace.detected_language)}</span> ${esc(trace.ingredient_original)}</div>
        <div class="dest-arrow">→</div>
-       <div class="dest-to"><div class="to-name">No confident match</div>
-         <div class="to-meta">The agent couldn't map this to a USDA entry · ${secs}s</div></div>`;
-  await sleep(60);
-  dest.classList.add("show");
+       <div class="dest-to"><div class="to-name">No confident match</div><div class="to-meta">${secs}s</div></div>`;
+  requestAnimationFrame(() => dest.classList.add("show"));
 }
 
 /* ---------- unified smart search ---------- */
@@ -159,14 +81,14 @@ async function smartSearch(q) {
 
   if (kind === "recipe") {
     $("#roadmap").classList.add("hidden");
-    showRecipes(q, 0);
+    showRecipes(q);
   } else {
     $("#recipes").classList.add("hidden");
     analyze(q);
   }
 }
 
-/* ---------- ingredient → roadmap ---------- */
+/* ---------- ingredient → result ---------- */
 async function analyze(name) {
   name = (name || "").trim();
   if (!name || busy) return;
@@ -176,18 +98,15 @@ async function analyze(name) {
   const roadmap = $("#roadmap");
   roadmap.classList.remove("hidden");
   $("#destination").classList.remove("show");
-  resetTracker();
-  $("#stations").innerHTML =
-    `<div class="loader"><span class="spinner"></span> Agent is reasoning through the 5 stages…</div>`;
+  $("#result").innerHTML = `<div class="loader"><span class="spinner"></span> Linking “${esc(name)}” to USDA…</div>`;
   roadmap.scrollIntoView({ behavior: "smooth", block: "start" });
 
   try {
     const res = await fetch("/link/ingredient?name=" + encodeURIComponent(name));
     if (!res.ok) throw new Error("API returned " + res.status);
-    const trace = await res.json();
-    await playRoadmap(trace);
+    renderResult(await res.json());
   } catch (e) {
-    $("#stations").innerHTML = `<div class="err">Couldn't analyze "${esc(name)}" — ${esc(e.message)}</div>`;
+    $("#result").innerHTML = `<div class="err">Couldn't analyze "${esc(name)}" — ${esc(e.message)}</div>`;
   } finally {
     busy = false;
     if (btn) btn.disabled = false;
@@ -195,10 +114,10 @@ async function analyze(name) {
 }
 
 /* ---------- recipe → paginated results (5 per page) ---------- */
-let recipeState = { q: "", offset: 0, limit: 5 };
+let recipeState = { q: "", offset: 0, limit: 5, items: [] };
 
-async function showRecipes(q, offset) {
-  recipeState = { q, offset, limit: 5 };
+// Fetch matches once per query, then page through the cached list locally (no refetch).
+async function showRecipes(q) {
   const sec = $("#recipes");
   sec.classList.remove("hidden");
   $("#recipeDetail").classList.add("hidden");
@@ -209,55 +128,145 @@ async function showRecipes(q, offset) {
   sec.scrollIntoView({ behavior: "smooth", block: "start" });
 
   try {
-    const list = await (await fetch(`/recipes?q=${encodeURIComponent(q)}&limit=5&offset=${offset}`)).json();
+    const list = await (await fetch(`/recipes?q=${encodeURIComponent(q)}&limit=100&offset=0`)).json();
+    recipeState = { q, offset: 0, limit: 5, items: list };
     if (!list.length) {
-      $("#recipeResults").innerHTML = offset === 0
-        ? `<p class="muted">No recipes found for “${esc(q)}”.</p>`
-        : `<p class="muted">No more recipes.</p>`;
-      renderPager(0);
+      $("#recipeResults").innerHTML = `<p class="muted">No recipes found for “${esc(q)}”.</p>`;
       return;
     }
-    $("#recipeResults").innerHTML = list.map((r) =>
-      `<div class="recipe-card" data-i="${r.index}">
-        <div class="rc-title">${esc(r.title)}</div>
-        <div class="rc-meta">${r.ingredient_count} ingredients · ${esc((r.tags || []).slice(0, 3).join(", "))}</div>
-      </div>`).join("");
-    $$("#recipeResults .recipe-card").forEach((card) =>
-      card.addEventListener("click", () => openRecipe(card.getAttribute("data-i"))));
-    $("#recipesMeta").textContent = `showing ${offset + 1}–${offset + list.length}`;
-    renderPager(list.length);
+    renderRecipePage(0);
   } catch (e) {
     $("#recipeResults").innerHTML = `<div class="err">Search failed — ${esc(e.message)}</div>`;
   }
 }
 
-function renderPager(count) {
-  const { q, offset, limit } = recipeState;
+// Render one page from the already-fetched results — no network call.
+function renderRecipePage(offset) {
+  const { items, limit } = recipeState;
+  recipeState.offset = offset;
+  const page = items.slice(offset, offset + limit);
+  $("#recipeResults").innerHTML = page.map((r) =>
+    `<div class="recipe-card" data-i="${r.index}">
+      <div class="rc-title">${esc(r.title)}</div>
+      <div class="rc-meta">${r.ingredient_count} ingredients · ${esc((r.tags || []).slice(0, 3).join(", "))}</div>
+    </div>`).join("");
+  $$("#recipeResults .recipe-card").forEach((card) =>
+    card.addEventListener("click", () => openRecipe(card.getAttribute("data-i"))));
+  $("#recipesMeta").textContent = `showing ${offset + 1}–${offset + page.length} of ${items.length}`;
+  renderPager();
+}
+
+function renderPager() {
+  const { offset, limit, items } = recipeState;
+  const totalPages = Math.max(1, Math.ceil(items.length / limit));
   const hasPrev = offset > 0;
-  const hasNext = count === limit; // a full page implies there may be more
+  const hasNext = offset + limit < items.length;
   $("#pager").innerHTML =
     `<button class="pg-btn" id="pgPrev" ${hasPrev ? "" : "disabled"}>← Prev</button>
-     <span class="pg-info">page ${Math.floor(offset / limit) + 1}</span>
+     <span class="pg-info">page ${Math.floor(offset / limit) + 1} of ${totalPages}</span>
      <button class="pg-btn" id="pgNext" ${hasNext ? "" : "disabled"}>Next →</button>`;
-  if (hasPrev) $("#pgPrev").addEventListener("click", () => showRecipes(q, Math.max(0, offset - limit)));
-  if (hasNext) $("#pgNext").addEventListener("click", () => showRecipes(q, offset + limit));
+  if (hasPrev) $("#pgPrev").addEventListener("click", () => renderRecipePage(Math.max(0, offset - limit)));
+  if (hasNext) $("#pgNext").addEventListener("click", () => renderRecipePage(offset + limit));
 }
 
 async function openRecipe(index) {
   const det = $("#recipeDetail");
   det.classList.remove("hidden");
   det.innerHTML = `<div class="loader"><span class="spinner"></span> Loading recipe…</div>`;
+  det.scrollIntoView({ behavior: "smooth", block: "start" });
   try {
     const r = await (await fetch("/recipes/" + index)).json();
     const ings = (r.ingredients || []).filter((x) => x.name);
-    det.innerHTML = `<h3>${esc(r.title)}</h3>
-      <p class="muted">Click an ingredient to run it through the roadmap below.</p>
-      <div class="ing-chips">${ings.map((x) =>
-        `<span class="ing-chip" data-v="${esc(x.name)}">${esc(x.name)}</span>`).join("")}</div>`;
+    const qtyOf = (x) => `${x.quantity || ""} ${x.unit || ""}`.trim();
+    const tags = (r.tags || []).slice(0, 8);
+
+    const instrHTML = (r.instructions || []).length
+      ? `<details class="rd-instr"><summary>📖 Instructions (${r.instructions.length} steps)</summary>
+           <ol>${r.instructions.map((s) => `<li>${esc(s)}</li>`).join("")}</ol></details>`
+      : "";
+    const ingrTable = ings.length
+      ? `<table class="ingr-table"><thead><tr><th>Quantity</th><th>Ingredient</th></tr></thead>
+           <tbody>${ings.map((x) => `<tr><td>${esc(qtyOf(x))}</td><td>${esc(x.name)}</td></tr>`).join("")}</tbody></table>`
+      : `<p class="muted">No ingredients listed.</p>`;
+
+    det.innerHTML = `
+      <div class="rd-head">
+        <h3>${esc(r.title)}</h3>
+        ${r.source ? `<a class="rd-src" href="${esc(r.source)}" target="_blank" rel="noopener">Source ↗</a>` : ""}
+      </div>
+      ${tags.length ? `<div class="rd-tags">${tags.map((t) => `<span class="rd-tag">${esc(t)}</span>`).join("")}</div>` : ""}
+      <div class="rd-cols">
+        <div class="rd-col">
+          <h4>📋 Recipe</h4>
+          ${instrHTML}
+          <div class="ingr-label">Ingredients</div>
+          ${ingrTable}
+        </div>
+        <div class="rd-col">
+          <h4>🤖 Agent Analysis</h4>
+          ${ings.length
+            ? `<button class="btn-primary" id="analyzeAllBtn">▶ Analyze all ${ings.length} ingredients</button>
+               <p class="muted" style="margin:10px 0 6px">…or click a single ingredient to link just that one:</p>
+               <div class="ing-chips">${ings.map((x) => `<span class="ing-chip" data-v="${esc(x.name)}">${esc(x.name)}</span>`).join("")}</div>`
+            : `<p class="muted">No ingredients to analyze.</p>`}
+        </div>
+      </div>
+      <div id="mapping"></div>`;
+
     $$(".ing-chip", det).forEach((chip) =>
       chip.addEventListener("click", () => analyze(chip.getAttribute("data-v"))));
+    const allBtn = $("#analyzeAllBtn");
+    if (allBtn) allBtn.addEventListener("click", () => analyzeAll(index));
   } catch (e) {
     det.innerHTML = `<div class="err">Couldn't load recipe — ${esc(e.message)}</div>`;
+  }
+}
+
+async function analyzeAll(index) {
+  const out = $("#mapping");
+  const btn = $("#analyzeAllBtn");
+  if (!out) return;
+  if (btn) btn.disabled = true;
+  out.innerHTML = `<div class="loader"><span class="spinner"></span> Running the agent on every ingredient… this can take a moment.</div>`;
+  try {
+    const data = await (await fetch("/link/recipe/" + index)).json();
+    const items = data.linked_ingredients || [];
+    const emoji = (lvl) => ({ high: "🟢", med: "🟡", low: "🔴" }[lvl] || "⚪");
+
+    const rows = items.map((it) => {
+      const o = it.original, t = it.trace;
+      const qty = `${o.quantity || ""} ${o.unit || ""}`.trim();
+      return `<tr>
+        <td>${esc(o.name)}</td>
+        <td class="muted">${esc(qty)}</td>
+        <td>${t.selected_usda_name ? esc(t.selected_usda_name) : "—"}</td>
+        <td class="mono">${t.selected_usda_id ? "USDA:" + esc(t.selected_usda_id) : "—"}</td>
+        <td>${emoji(t.confidence_level)} ${t.confidence}%</td>
+      </tr>`;
+    }).join("");
+
+    const traces = items.map((it) => {
+      const t = it.trace;
+      return `<details class="trace-exp">
+        <summary>🔎 ${esc(it.original.name)} → ${t.selected_usda_name ? esc(t.selected_usda_name) : "no match"} <span class="muted">· ${t.confidence}%</span></summary>
+        <div class="trace-body">${resultHTML(t)}</div>
+      </details>`;
+    }).join("");
+
+    out.innerHTML = `
+      <div class="success-line">✅ Analyzed ${items.length} ingredient(s)</div>
+      <h5>Mapping summary</h5>
+      <table class="summary-table">
+        <thead><tr><th>Ingredient</th><th>Quantity</th><th>USDA entity</th><th>ID</th><th>Confidence</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <h5>Details</h5>
+      ${traces}`;
+    $$(".result-card", out).forEach(fillBars);
+  } catch (e) {
+    out.innerHTML = `<div class="err">Analyze-all failed — ${esc(e.message)}</div>`;
+  } finally {
+    if (btn) btn.disabled = false;
   }
 }
 
