@@ -1,0 +1,23 @@
+/* =====================================================================
+   Трпеза — responsive overrides (loaded last so they win the cascade)
+   ===================================================================== */
+
+@media (max-width: 900px) {
+  .wrap, .results-wrap, .recipes-wrap, .detail-wrap { padding-left: 20px; padding-right: 20px; }
+  .hero-inner { grid-template-columns: 1fr; gap: 32px; padding-top: 40px; }
+  .mosaic { display: none; }
+  .hero h1 { font-size: 40px; }
+  .feature-grid { grid-template-columns: 1fr; }
+  .recipe-grid { grid-template-columns: repeat(2, 1fr); }
+  .detail-cols { grid-template-columns: 1fr; }
+  .detail-photo { position: relative; top: 0; aspect-ratio: 16/10; }
+  .match-top { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .header-inner { flex-wrap: wrap; gap: 12px; }
+  .recipe-grid { grid-template-columns: 1fr; }
+  .stats-strip { grid-template-columns: 1fr; }
+  .results-head h2 { font-size: 34px; }
+  .hero h1 { font-size: 32px; }
+  .nav .nav-btn { padding: 8px 10px; font-size: 13px; }
+}

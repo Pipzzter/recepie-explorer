@@ -1,81 +1,59 @@
 <!doctype html>
-<html lang="en">
+<html lang="mk">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Recipe Entity Linker — Roadmap</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍳</text></svg>">
-  <link rel="stylesheet" href="/static/style.css">
+  <title>Трпеза — Macedonian ingredient atlas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%23C0562F'/><rect x='35' y='35' width='30' height='30' fill='%23F4D58A' transform='rotate(45 50 50)'/></svg>">
+  <link rel="stylesheet" href="/static/styles/base.css">
+  <link rel="stylesheet" href="/static/styles/home.css">
+  <link rel="stylesheet" href="/static/styles/ingredient.css">
+  <link rel="stylesheet" href="/static/styles/recipes.css">
+  <link rel="stylesheet" href="/static/styles/responsive.css">
 </head>
 <body>
-  <nav class="navbar" id="top">
-    <div class="nav-inner wrap">
-      <a class="nav-brand" href="#top">
-        <span class="logo">🍳</span>
-        <span>Recipe&nbsp;Entity&nbsp;Linker</span>
-      </a>
-      <div class="nav-links">
-        <a href="#search">Search</a>
-        <a href="/docs" target="_blank" rel="noopener">API</a>
-      </div>
-      <div class="nav-stats">
-        <span class="pill" id="pillRecipes">…</span>
-        <span class="pill" id="pillUsda">…</span>
-        <span class="pill pill-engine" id="pillEngine">…</span>
-      </div>
-    </div>
-  </nav>
 
-  <header class="hero">
-    <div class="wrap">
-      <h1>Follow an ingredient to its USDA match</h1>
-      <p class="tagline">Type a Macedonian (or English) ingredient and the agent links it to its standardized USDA FoodData Central entry — with a plain-language summary of what it is.</p>
+  <!-- ===================== HEADER ===================== -->
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <button class="brand" id="brandHome">
+        <span class="brand-mark"><span></span></span>
+        <span>
+          <span class="brand-name">Трпеза</span>
+          <span class="brand-tag">ingredient atlas</span>
+        </span>
+      </button>
+
+      <nav class="nav">
+        <button class="nav-btn" data-nav="home" data-i18n="nav.home">Дома</button>
+        <button class="nav-btn" data-nav="ingredient" data-i18n="nav.ingredient">Состојка</button>
+        <button class="nav-btn" data-nav="recipes" data-i18n="nav.recipes">Рецепти</button>
+        <span class="nav-divider"></span>
+        <span class="lang-toggle" id="langToggle">
+          <button data-lang="mk" class="active">MK</button>
+          <button data-lang="en">EN</button>
+        </span>
+        <span class="model-badge" id="modelBadge"><span class="dot"></span><span id="modelName">…</span></span>
+      </nav>
     </div>
   </header>
 
-  <main class="wrap">
+  <!-- ===================== VIEW MOUNT ===================== -->
+  <div id="app"></div>
 
-    <!-- ============ SMART SEARCH (one box for everything) ============ -->
-    <section class="panel" id="search">
-      <h2 class="panel-title">Search</h2>
-      <p class="panel-sub">Type an <b>ingredient</b> (e.g. павлака, olive oil) or a <b>recipe / dish</b> (e.g. торта, chocolate cake). The model decides which: an ingredient runs the 5-stage roadmap, a recipe shows matching recipes below.</p>
-      <div class="search-row">
-        <input id="q" type="text" autocomplete="off" placeholder="Search an ingredient or a recipe…">
-        <button id="goBtn" class="btn-primary">Search&nbsp;▶</button>
-      </div>
-      <div class="chips" id="exampleChips">
-        <span class="chip" data-v="павлака">павлака</span>
-        <span class="chip" data-v="сирење">сирење</span>
-        <span class="chip" data-v="пилешко">пилешко</span>
-        <span class="chip" data-v="olive oil">olive oil</span>
-        <span class="chip" data-v="торта">торта</span>
-        <span class="chip" data-v="chocolate cake">chocolate cake</span>
-      </div>
-    </section>
-
-    <!-- ============ RECIPE RESULTS (when the query is a recipe) ============ -->
-    <section class="panel hidden" id="recipes">
-      <div class="results-head">
-        <h2 class="panel-title" id="recipesTitle">Recipes</h2>
-        <span class="results-meta" id="recipesMeta"></span>
-      </div>
-      <div id="recipeResults" class="recipe-grid"></div>
-      <div class="pager" id="pager"></div>
-      <div id="recipeDetail" class="recipe-detail hidden"></div>
-    </section>
-
-    <!-- ============ RESULT (when the query is an ingredient) ============ -->
-    <section id="roadmap" class="roadmap hidden" aria-live="polite">
-      <div id="destination" class="destination"></div>
-      <div id="result" class="result"></div>
-    </section>
-
-  </main>
-
-  <footer class="site-footer">
-    <div class="wrap">Recipe Entity Linker · Macedonian ingredients → USDA FoodData Central</div>
-  </footer>
-
-  <script src="/static/app.js"></script>
+  <!-- scripts load in dependency order (classic scripts share one global scope) -->
+  <script src="/static/scripts/helpers.js"></script>
+  <script src="/static/scripts/state.js"></script>
+  <script src="/static/scripts/i18n.js"></script>
+  <script src="/static/scripts/api.js"></script>
+  <script src="/static/scripts/views/home.js"></script>
+  <script src="/static/scripts/views/ingredient.js"></script>
+  <script src="/static/scripts/views/recipes.js"></script>
+  <script src="/static/scripts/views/detail.js"></script>
+  <script src="/static/scripts/router.js"></script>
+  <script src="/static/scripts/app.js"></script>
 </body>
 </html>
