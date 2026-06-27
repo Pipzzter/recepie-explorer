@@ -86,6 +86,22 @@ async function smartSearch(q) {
   q = (q || "").trim();
   if (!q || busy) return;
   state.query = q;
+
+  // Show a loading state on the home search bar while we classify the query
+  // (ingredient vs recipe), before redirecting to the matching page.
+  const btn = $("#heroSubmit");
+  if (btn && btn.dataset.loading === "1") return;   // guard against double submit
+  const input = $("#heroInput");
+  const hint = $("#searchHint");
+  if (btn) {
+    btn.dataset.loading = "1";
+    btn.disabled = true;
+    btn.classList.add("loading");
+    btn.innerHTML = `<span class="spinner light"></span> ${esc(t("hero.detecting"))}`;
+  }
+  if (input) input.disabled = true;
+  if (hint) hint.textContent = t("hero.routing");
+
   let kind = "ingredient";
   try { kind = await api.classify(q); } catch (_) { /* default to ingredient */ }
   if (kind === "recipe") openRecipes(q);

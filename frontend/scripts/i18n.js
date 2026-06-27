@@ -15,6 +15,8 @@ const I18N = {
     "hero.sub": "Внесете состојка или рецепт — системот сам препознава што сте напишале и ве носи на вистинската страница. Поврзете состојка со USDA или прелистувајте 36.000+ домашни рецепти.",
     "hero.ph": "пр. павлака, торта, маслиново масло, пилешка супа…",
     "hero.submit": "Пребарај",
+    "hero.detecting": "Препознавам…",
+    "hero.routing": "Препознавам дали е состојка или рецепт…",
     "hero.try": "Пробајте:",
     "hero.smart": "🔎 паметно пребарување — препознава состојка или рецепт",
 
@@ -170,6 +172,8 @@ const I18N = {
     "hero.sub": "Type an ingredient or a recipe — the system recognizes which one and takes you to the right page. Link an ingredient to USDA, or browse 36,000+ home recipes.",
     "hero.ph": "e.g. павлака, cake, olive oil, chicken soup…",
     "hero.submit": "Search",
+    "hero.detecting": "Detecting…",
+    "hero.routing": "Detecting whether that's an ingredient or a recipe…",
     "hero.try": "Try:",
     "hero.smart": "🔎 smart search — detects ingredient or recipe",
 

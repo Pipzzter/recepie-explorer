@@ -159,12 +159,14 @@ button.model-badge:hover { background: var(--green-line); }
   transition: background .2s; white-space: nowrap;
 }
 .btn-primary:hover { background: var(--terracotta-dk); }
-.btn-primary:disabled { opacity: .6; cursor: default; }
+.btn-primary:disabled { opacity: .85; cursor: default; }
+.btn-primary.loading { display: inline-flex; align-items: center; gap: 9px; }
 .btn-soft { font-weight: 600; font-size: 14px; color: var(--ink); background: var(--chip-bg); border: 1px solid var(--line); padding: 12px 22px; border-radius: 11px; cursor: pointer; }
 .btn-soft:hover { background: var(--chip-bg-h); }
 
 /* spinner + inline states */
 .spinner { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--terracotta); border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; flex: 0 0 auto; }
+.spinner.light { border-color: rgba(255,248,236,0.4); border-top-color: #FFF8EC; }
 .inline-loader { display: flex; align-items: center; gap: 12px; color: var(--muted-2); font-size: 14px; padding: 40px 0; justify-content: center; }
 .inline-err { background: var(--red-bg); border: 1px solid var(--red-line); color: var(--red); padding: 16px 18px; border-radius: 12px; font-size: 14px; }
 .muted { color: var(--muted-2); }

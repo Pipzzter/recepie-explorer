@@ -34,7 +34,7 @@ function renderHome() {
             <input id="heroInput" type="text" autocomplete="off" value="${esc(state.query)}" placeholder="${esc(t("hero.ph"))}">
             <button class="btn-primary" id="heroSubmit">${esc(t("hero.submit"))} →</button>
           </div>
-          <div class="search-hint">${esc(t("hero.smart"))}</div>
+          <div class="search-hint" id="searchHint">${esc(t("hero.smart"))}</div>
         </div>
 
         <div class="try-row">
