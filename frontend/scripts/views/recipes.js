@@ -1,4 +1,5 @@
 "use strict";
+/* exported renderRecipes, openRecipes, searchRecipes, filterRecipesByTag */
 
 /* =====================================================================
    Трпеза — RECIPES page: browser grid, tag filters, pagination
@@ -13,7 +14,7 @@ function renderRecipes() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const tags = TAG_FILTERS.map((tg) => {
-    const active = (tg === "" ? state.recipeQuery === "" : state.recipeQuery === tg);
+    const active = (tg === "" ? state.recipeTag === "" : state.recipeTag === tg);
     const label = tg === "" ? t("rec.all") : tg;
     const style = active
       ? "color:#FFF8EC;background:#C0562F;border-color:#C0562F"
@@ -24,7 +25,9 @@ function renderRecipes() {
   const cards = page.map((r) => `
     <div class="recipe-card" data-recipe="${r.index}">
       <div class="rc-photo" style="background:${hueGradient(r.index)}">
-        <div class="photo-tag">${esc(t("det.photo"))}</div>
+        ${r.image
+          ? `<img src="${esc(r.image)}" alt="${esc(r.title)}" loading="lazy" onerror="this.remove()">`
+          : `<div class="photo-tag">${esc(t("det.photo"))}</div>`}
         <div class="scrim"></div>
         <div class="rc-ing">${r.ingredient_count} ${esc(t("rec.ingredients"))}</div>
       </div>
@@ -64,10 +67,8 @@ function renderRecipes() {
   </main>`;
 }
 
-/* ---------- fetch + show the recipe browser ---------- */
-async function openRecipes(q) {
-  q = (q || "").trim();
-  state.recipeQuery = q;
+/* ---------- fetch + show the recipe browser (uses current query + tag) ---------- */
+async function loadRecipeList() {
   state.recipePage = 0;
   state.view = "recipes";
   pushURL("recipes");
@@ -76,9 +77,28 @@ async function openRecipes(q) {
     <div class="inline-loader"><span class="spinner"></span> ${esc(t("rec.loading"))}</div></main></div>`;
   window.scrollTo({ top: 0, behavior: "smooth" });
   try {
-    state.recipeList = await api.recipes(q);
+    state.recipeList = await api.recipes(state.recipeQuery, state.recipeTag);
   } catch (_) {
     state.recipeList = [];
   }
   render();
+}
+
+// External entry (home / nav / docs / back): a fresh browse — clears the tag.
+async function openRecipes(q) {
+  state.recipeQuery = (q || "").trim();
+  state.recipeTag = "";
+  await loadRecipeList();
+}
+
+// In-page search box: update the free-text query, keep the active tag filter.
+async function searchRecipes(q) {
+  state.recipeQuery = (q || "").trim();
+  await loadRecipeList();
+}
+
+// Category chip below the search bar: filter by exact tag, keep the search text.
+async function filterRecipesByTag(tag) {
+  state.recipeTag = tag || "";
+  await loadRecipeList();
 }

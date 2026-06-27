@@ -1,4 +1,5 @@
 "use strict";
+/* exported renderDetail, openRecipe, analyzeAll */
 
 /* =====================================================================
    Трпеза — RECIPE DETAIL page: ingredients, instructions, link-all

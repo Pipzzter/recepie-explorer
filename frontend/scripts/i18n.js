@@ -1,4 +1,5 @@
 "use strict";
+/* exported t, applyStaticI18n, setLang */
 
 /* =====================================================================
    Трпеза — translations (MK default + EN) and language switching
@@ -7,6 +8,7 @@
 const I18N = {
   mk: {
     "nav.home": "Дома", "nav.ingredient": "Состојка", "nav.recipes": "Рецепти",
+    "nav.docs": "Документација",
 
     "hero.badge": "македонска кујна × наука за храна",
     "hero.title": 'Секоја состојка,<br>поврзана со <em>науката</em>.',
@@ -105,9 +107,63 @@ const I18N = {
     "err.tryPavlaka": "Пробај „павлака“",
     "err.browse": "Прелистувај рецепти",
     "err.generic": "Нешто тргна наопаку",
+
+    "key.kicker": "API клуч",
+    "key.title": "Додај го твојот OpenAI API клуч",
+    "key.help": "Залепи OpenAI клуч за да го овозможиш целосниот LLM тек. Клучот се чува само во меморија на серверот — не се запишува на диск и не се логира.",
+    "key.cancel": "Откажи",
+    "key.save": "Зачувај клуч",
+    "key.saving": "Проверувам клуч…",
+    "key.ok": "Клучот работи — активен модел: {engine}",
+    "key.empty": "Внеси API клуч.",
+    "key.fail": "Клучот е одбиен. Провери го и обиди се повторно.",
+
+    "doc.kicker": "Како работи",
+    "doc.title": "Документација",
+    "doc.intro": "Трпеза поврзува македонски состојки со USDA FoodData Central и нуди прелистувач на 36.000+ домашни рецепти. Подолу е накратко објаснето како работи секој дел.",
+
+    "doc.ing.title": "Страница за состојки",
+    "doc.ing.body": "Внесуваш состојка (на македонски или англиски) и агентот ја води низ пет чекори за да го најде најсоодветниот USDA запис — со оценка на сигурност и целосна трага.",
+    "doc.s1.t": "Анализа",
+    "doc.s1.d": "Открива јазик и преведува на англиски — преку LLM или вграден речник за кирилица.",
+    "doc.s2.t": "Одлука за контекст",
+    "doc.s2.d": "Проценува дали состојката е двосмислена и дали ѝ треба контекст од рецепти.",
+    "doc.s3.t": "Преземи контекст",
+    "doc.s3.d": "Бара во кои рецепти се појавува состојката за да добие реални примери на употреба.",
+    "doc.s4.t": "Пребарај USDA",
+    "doc.s4.d": "Рангира кандидати од 7.793 USDA записи преку преклопување на зборови (Jaccard).",
+    "doc.s5.t": "Процени и избери",
+    "doc.s5.d": "Моделот го избира најдобриот кандидат и враќа сигурност и образложение.",
+    "doc.conf.title": "Оценка на сигурност",
+    "doc.conf.body": "Кружниот мерач (0–100) покажува колку моделот е сигурен во совпаѓањето — зелено: висока, портокалово: средна, црвено: ниска.",
+    "doc.trace.title": "Трага на агентот",
+    "doc.trace.body": "Кликни „Прикажи детали“ за да ги видиш сите пет чекори со меѓурезултати — превод, кандидати и финален избор.",
+    "doc.try.ing": "Отвори страница за состојки →",
+
+    "doc.rec.title": "Страница за рецепти",
+    "doc.rec.body": "Прелистувај и пребарувај низ цела збирка домашни македонски рецепти.",
+    "doc.rec.s1.t": "Пребарување",
+    "doc.rec.s1.d": "Пишувај по наслов или ознака; резултатите се прикажуваат во мрежа со пагинација.",
+    "doc.rec.s2.t": "Детали за рецепт",
+    "doc.rec.s2.d": "Отвори рецепт за да ги видиш состојките, подготовката и изворот.",
+    "doc.rec.s3.t": "Поврзи ги сите",
+    "doc.rec.s3.d": "Со едно копче го пушташ агентот на секоја состојка и добиваш табела со мапирања.",
+    "doc.try.rec": "Отвори прелистувач →",
+
+    "doc.smart.title": "Паметно пребарување",
+    "doc.smart.body": "Лентата на почетната страница сама препознава дали си напишал состојка или рецепт и те носи на вистинската страница.",
+
+    "doc.engine.title": "Машина (LLM)",
+    "doc.engine.body": "Системот користи OpenAI (gpt-4o-mini) кога има клуч, инаку правило-базиран резервен режим. Сите пет чекори се извршуваат и без клуч — само квалитетот на образложението се менува.",
+    "doc.key.title": "API клуч",
+    "doc.key.body": "Кликни на значката за модел горе десно за да внесеш OpenAI клуч и да го овозможиш целосниот LLM режим. Клучот се чува само во меморија на серверот.",
+
+    "doc.data.title": "Податоци",
+    "doc.data.body": "36.237 македонски рецепти за контекст и 7.793 USDA FoodData Central записи за поврзување.",
   },
   en: {
     "nav.home": "Home", "nav.ingredient": "Ingredient", "nav.recipes": "Recipes",
+    "nav.docs": "Docs",
 
     "hero.badge": "macedonian cuisine × food science",
     "hero.title": 'Every ingredient,<br>linked to <em>science</em>.',
@@ -206,6 +262,59 @@ const I18N = {
     "err.tryPavlaka": "Try „павлака“",
     "err.browse": "Browse recipes",
     "err.generic": "Something went wrong",
+
+    "key.kicker": "API key",
+    "key.title": "Add your OpenAI API key",
+    "key.help": "Paste an OpenAI key to enable the full LLM pipeline. It is kept only in memory on the server — never logged or saved to disk.",
+    "key.cancel": "Cancel",
+    "key.save": "Save key",
+    "key.saving": "Verifying key…",
+    "key.ok": "Key works — active model: {engine}",
+    "key.empty": "Enter an API key.",
+    "key.fail": "The key was rejected. Check it and try again.",
+
+    "doc.kicker": "How it works",
+    "doc.title": "Documentation",
+    "doc.intro": "Трпеза links Macedonian ingredients to USDA FoodData Central and offers a browser of 36,000+ home recipes. Below is a short explanation of how each part works.",
+
+    "doc.ing.title": "Ingredient page",
+    "doc.ing.body": "Enter an ingredient (in Macedonian or English) and the agent walks it through five stages to find the best-matching USDA entry — with a confidence score and a full trace.",
+    "doc.s1.t": "Analyze",
+    "doc.s1.d": "Detects the language and translates to English — via the LLM or a built-in Cyrillic dictionary.",
+    "doc.s2.t": "Decide context",
+    "doc.s2.d": "Judges whether the ingredient is ambiguous and needs recipe context to disambiguate.",
+    "doc.s3.t": "Fetch context",
+    "doc.s3.d": "Looks up which recipes the ingredient appears in to gather real usage examples.",
+    "doc.s4.t": "Search USDA",
+    "doc.s4.d": "Ranks candidates from 7,793 USDA entries by word overlap (Jaccard similarity).",
+    "doc.s5.t": "Evaluate & select",
+    "doc.s5.d": "The model picks the best candidate and returns a confidence score and reasoning.",
+    "doc.conf.title": "Confidence score",
+    "doc.conf.body": "The circular dial (0–100) shows how sure the model is about the match — green: high, orange: medium, red: low.",
+    "doc.trace.title": "Agent trace",
+    "doc.trace.body": "Click “Show details” to see all five stages with intermediate results — translation, candidates and the final pick.",
+    "doc.try.ing": "Open ingredient page →",
+
+    "doc.rec.title": "Recipe page",
+    "doc.rec.body": "Browse and search the whole collection of home Macedonian recipes.",
+    "doc.rec.s1.t": "Search",
+    "doc.rec.s1.d": "Type a title or tag; results show in a grid with pagination.",
+    "doc.rec.s2.t": "Recipe details",
+    "doc.rec.s2.d": "Open a recipe to see its ingredients, preparation steps and source.",
+    "doc.rec.s3.t": "Link all",
+    "doc.rec.s3.d": "One button runs the agent on every ingredient and gives you a mapping table.",
+    "doc.try.rec": "Open browser →",
+
+    "doc.smart.title": "Smart search",
+    "doc.smart.body": "The home search bar detects whether you typed an ingredient or a recipe and takes you to the right page.",
+
+    "doc.engine.title": "Engine (LLM)",
+    "doc.engine.body": "The system uses OpenAI (gpt-4o-mini) when a key is set, otherwise a rule-based fallback. All five stages run even without a key — only the reasoning quality changes.",
+    "doc.key.title": "API key",
+    "doc.key.body": "Click the model badge at the top right to enter an OpenAI key and enable the full LLM mode. The key is kept only in memory on the server.",
+
+    "doc.data.title": "Data",
+    "doc.data.body": "36,237 Macedonian recipes for context and 7,793 USDA FoodData Central entries for linking.",
   },
 };
 

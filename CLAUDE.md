@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 pip install -r requirements.txt
-cp .env.example .env   # add ANTHROPIC_API_KEY or OPENAI_API_KEY
+cp .env.example .env   # add OPENAI_API_KEY
 uvicorn backend.api:app --port 8000
 ```
 
@@ -41,14 +41,14 @@ Frontend — `index.html` + classic scripts (shared global scope, loaded in depe
 | Path | Role |
 |---|---|
 | `frontend/scripts/{helpers,state,i18n,api}.js` | DOM/format helpers · app state · MK/EN translations · backend calls |
-| `frontend/scripts/views/{home,ingredient,recipes,detail}.js` | One file per page (HTML builders + page actions) |
+| `frontend/scripts/views/{home,ingredient,recipes,detail,docs}.js` | One file per page (HTML builders + page actions) |
 | `frontend/scripts/router.js` | Clean-URL routing (History API), `render`/`navigate`, event binding, `smartSearch` |
-| `frontend/scripts/app.js` | Entry point — wires the header, restores language, routes the initial URL |
-| `frontend/styles/{base,home,ingredient,recipes,responsive}.css` | Design tokens + per-page styles (responsive loaded last) |
+| `frontend/scripts/app.js` | Entry point — wires the header, restores language, routes the initial URL, API-key modal |
+| `frontend/styles/{base,home,ingredient,recipes,docs,responsive}.css` | Design tokens + per-page styles (responsive loaded last) |
 
 ### Routing & pages
 
-Single-page app with **clean URLs** (no `#hash`): `/` (home), `/sostojka` (ingredient page), `/recepti` (recipe browser), `/recept/{index}` (recipe detail). The History API drives navigation; FastAPI's catch-all `spa_fallback` returns `index.html` for any non-API path so deep links and refreshes work. The home search bar calls `/smart` and redirects to the ingredient or recipe page based on the classification.
+Single-page app with **English clean URLs** (no `#hash`): `/` (home), `/ingredient` (ingredient page), `/recipes` (recipe browser), `/recipe/{index}` (recipe detail), `/documentation` (documentation page). The History API drives navigation; FastAPI's catch-all `spa_fallback` returns `index.html` for any non-`/api` path so deep links and refreshes work. The home search bar calls `/api/smart` and redirects to the ingredient or recipe page based on the classification. Default UI language is English (toggle to MK).
 
 ### The 5-stage pipeline (`EntityLinkingAgent.link`)
 
@@ -62,14 +62,17 @@ Each call to `agent.link(ingredient)` runs all 5 stages and returns an `AgentTra
 
 ### LLM provider selection
 
-`EntityLinkingAgent.__init__` tries providers in order: Anthropic (`claude-haiku-4-5-20251001`) → OpenAI (`gpt-4o-mini`) → rule-based fallback. Keys come from `.env` via `python-dotenv`. All 5 stages execute regardless of mode; only the reasoning quality changes.
+`EntityLinkingAgent.__init__` uses OpenAI (`gpt-4o-mini`, override with `OPENAI_MODEL`) when a key is available, otherwise a rule-based fallback. The key comes from `.env` via `python-dotenv`, or can be supplied at runtime via `POST /api/key`. All 5 stages execute regardless of mode; only the reasoning quality changes.
 
 ### API endpoints
 
-- `GET /link/ingredient?name=павлака` — run pipeline on one ingredient, returns `TraceOut`
-- `GET /link/recipe/{index}` — run pipeline on every ingredient in a recipe
-- `GET /recipes?q=...&limit=20&offset=0` — search recipes by title or tag
-- `GET /recipes/{index}` — single recipe detail
-- `GET /smart?q=...` — classify free-text as `"ingredient"` or `"recipe"`
-- `GET /stats` — dataset statistics
+All data endpoints live under `/api` so they never collide with the SPA's English clean URLs.
+
+- `GET /api/link/ingredient?name=павлака` — run pipeline on one ingredient, returns `TraceOut`
+- `GET /api/link/recipe/{index}` — run pipeline on every ingredient in a recipe
+- `GET /api/recipes?q=...&tag=...&limit=20&offset=0` — search recipes (`q` = fuzzy title/tag, `tag` = exact category)
+- `GET /api/recipes/{index}` — single recipe detail
+- `GET /api/smart?q=...` — classify free-text as `"ingredient"` or `"recipe"`
+- `GET /api/stats` — dataset statistics
 - `GET /api/health` — active LLM provider and loaded counts
+- `POST /api/key` — configure an OpenAI key at runtime (held in memory only)

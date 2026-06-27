@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
@@ -38,8 +37,8 @@ class AgentTrace:
     search_query: str = ""
     tool_calls: list[ToolCall] = field(default_factory=list)
     candidates: list[USDACandidate] = field(default_factory=list)
-    selected_usda_id: Optional[str] = None
-    selected_usda_name: Optional[str] = None
+    selected_usda_id: str | None = None
+    selected_usda_name: str | None = None
     confidence: int = 0
     confidence_level: str = "low"
     reasoning: str = ""

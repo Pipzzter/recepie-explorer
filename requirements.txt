@@ -1,5 +1,4 @@
 # Core
-anthropic>=0.28.0
 openai>=1.30.0
 fastapi>=0.111.0
 uvicorn[standard]>=0.30.0

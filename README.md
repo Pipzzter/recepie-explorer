@@ -90,15 +90,14 @@ Clicking any tag button filters the recipe list to show all recipes with that ta
 
 ## LLM configuration
 
-The app works in three modes depending on which API key is in your `.env`:
+The app works in two modes depending on whether an OpenAI API key is configured:
 
 | Mode | How to enable | What changes |
 |---|---|---|
-| **Claude (Anthropic)** | Set `ANTHROPIC_API_KEY` in `.env` | Stages 1, 2, 4 (query refinement), and 5 use Claude for translation, ambiguity reasoning, query formulation, and candidate evaluation with written justification |
-| **OpenAI** | Set `OPENAI_API_KEY` in `.env` (no Anthropic key) | Same stages use `gpt-4o-mini` (override with `OPENAI_MODEL`) |
+| **OpenAI** | Set `OPENAI_API_KEY` in `.env`, or enter a key at runtime via the API-key button | Stages 1, 2, 4 (query refinement), and 5 use `gpt-4o-mini` (override with `OPENAI_MODEL`) for translation, ambiguity reasoning, query formulation, and candidate evaluation with written justification |
 | **Rule-based fallback** | No key set | Stage 1 uses the Macedonian dictionary; Stage 2 uses generic-term heuristics; Stage 4 uses the raw English translation as query; Stage 5 picks the top keyword match. All 5 stages still execute and display. |
 
-Keys are read from a `.env` file at the project root (copy `.env.example` to `.env`). The agent prefers Anthropic when `ANTHROPIC_API_KEY` is set, otherwise it uses `OPENAI_API_KEY`. `.env` is gitignored, so your key is never committed. The active engine is shown at the bottom of the page.
+The key is read from a `.env` file at the project root (copy `.env.example` to `.env`) or supplied at runtime through `POST /api/key` (held in memory only). `.env` is gitignored, so your key is never committed. The active engine is shown in the header.
 
 ---
 
@@ -143,7 +142,7 @@ pip install -r requirements.txt
 
 **Add your API key:**
 ```bash
-cp .env.example .env   # then edit .env and set OPENAI_API_KEY (or ANTHROPIC_API_KEY)
+cp .env.example .env   # then edit .env and set OPENAI_API_KEY
 ```
 
 **Start the web app (roadmap UI + API), from the project root:**
@@ -159,8 +158,10 @@ Open **`http://localhost:8000`** for the roadmap UI. Interactive REST API docs a
 
 | Endpoint | Description |
 |---|---|
-| `GET /recipes?q=пилешко&limit=20` | Search recipes by title or tag |
-| `GET /recipes/{index}` | Get a single recipe by dataset index |
-| `GET /link/ingredient?name=павлака` | Run the full pipeline on one ingredient |
-| `GET /link/recipe/{index}` | Run the pipeline on every ingredient in a recipe |
-| `GET /stats` | Dataset statistics (total recipes, top tags) |
+| `GET /api/recipes?q=пилешко&tag=ручек&limit=20` | Search recipes (`q` = fuzzy title/tag, `tag` = exact category) |
+| `GET /api/recipes/{index}` | Get a single recipe by dataset index |
+| `GET /api/link/ingredient?name=павлака` | Run the full pipeline on one ingredient |
+| `GET /api/link/recipe/{index}` | Run the pipeline on every ingredient in a recipe |
+| `GET /api/smart?q=...` | Classify free-text as `ingredient` or `recipe` |
+| `GET /api/stats` | Dataset statistics (total recipes, top tags) |
+| `POST /api/key` | Configure an OpenAI key at runtime (held in memory only) |

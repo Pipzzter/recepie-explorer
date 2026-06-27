@@ -26,7 +26,8 @@ class RecipeContextTool:
                 ing_name = ing.get("name", "").lower()
                 if len(needle) >= 3 and needle in ing_name:
                     qty = f"{ing.get('quantity', '')} {ing.get('unit', '')}".strip()
-                    usage = f"{qty} — {ing.get('name', '')}" if qty else ing.get("name", "")
+                    name = ing.get("name", "")
+                    usage = f"{qty} — {name}" if qty else name
                     matches.append((recipe, usage))
                     break
         random.shuffle(matches)

@@ -1,4 +1,6 @@
 "use strict";
+/* exported $, $$, APP, esc, sleep, fmt, HUES, hueGradient, DIAMOND_PALETTE,
+   CONF, confMeta, confWord */
 
 /* =====================================================================
    Трпеза — DOM + formatting helpers and presentation constants

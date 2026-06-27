@@ -1,0 +1,10 @@
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM", "RET", "PIE"]
+
+[tool.ruff.lint.per-file-ignores]
+# Re-exports for the public package surface.
+"backend/agent/__init__.py" = ["F401"]

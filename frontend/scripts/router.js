@@ -4,20 +4,21 @@
    Трпеза — client-side router (clean URLs via the History API)
 
    Each page has a real path — no #hash:
-     /            home
-     /sostojka    ingredient page
-     /recepti     recipe browser
-     /recept/{i}  recipe detail
+     /              home
+     /ingredient    ingredient page
+     /recipes       recipe browser
+     /recipe/{i}    recipe detail
+     /documentation documentation page
    The FastAPI SPA fallback returns index.html for these paths, so deep
    links and refreshes work; this router renders the right page.
    ===================================================================== */
 
-const PATHS = { home: "/", ingredient: "/sostojka", recipes: "/recepti" };
+const PATHS = { home: "/", ingredient: "/ingredient", recipes: "/recipes", docs: "/documentation" };
 
 function pathFor(view, arg) {
   if (view === "detail") {
     const idx = (arg != null) ? arg : (state.recipeDetail ? state.recipeDetail.index : "");
-    return "/recept/" + idx;
+    return "/recipe/" + idx;
   }
   return PATHS[view] || "/";
 }
@@ -42,7 +43,8 @@ function render() {
     const n = b.getAttribute("data-nav");
     const active = (n === "home" && state.view === "home")
       || (n === "ingredient" && state.view === "ingredient")
-      || (n === "recipes" && (state.view === "recipes" || state.view === "detail"));
+      || (n === "recipes" && (state.view === "recipes" || state.view === "detail"))
+      || (n === "docs" && state.view === "docs");
     b.classList.toggle("active", active);
   });
 
@@ -51,6 +53,7 @@ function render() {
     ingredient: renderIngredientPage,
     recipes: renderRecipes,
     detail: renderDetail,
+    docs: renderDocs,
   };
   APP().innerHTML = `<div class="view">${(views[state.view] || renderHome)()}</div>`;
   bindView();
@@ -59,18 +62,19 @@ function render() {
 /* ---------- map a URL path → rendered page (initial load + back/forward) ---------- */
 function routeTo(path) {
   path = path || location.pathname;
-  if (path.startsWith("/recept/")) {
-    const idx = path.slice("/recept/".length).split("/")[0];
+  if (path.startsWith("/recipe/")) {
+    const idx = path.slice("/recipe/".length).split("/")[0];
     if (state.recipeDetail && String(state.recipeDetail.index) === idx) { state.view = "detail"; render(); }
     else openRecipe(idx);
     return;
   }
-  if (path.startsWith("/recepti")) {
+  if (path.startsWith("/recipes")) {
     if (state.recipeList.length) { state.view = "recipes"; render(); }
     else openRecipes(state.recipeQuery || "");
     return;
   }
-  if (path.startsWith("/sostojka")) { state.view = "ingredient"; render(); return; }
+  if (path.startsWith("/ingredient")) { state.view = "ingredient"; render(); return; }
+  if (path.startsWith("/documentation")) { state.view = "docs"; render(); return; }
   state.view = "home";
   render();
 }
@@ -106,6 +110,7 @@ function bindView() {
     $("#heroInput").addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
     $("#cardTool").addEventListener("click", () => goIngredient());
     $("#cardBrowse").addEventListener("click", () => openRecipes(""));
+    $$("[data-recipe]", root).forEach((c) => c.addEventListener("click", () => openRecipe(c.getAttribute("data-recipe"))));
   }
 
   if (state.view === "ingredient") {
@@ -117,10 +122,10 @@ function bindView() {
   }
 
   if (state.view === "recipes") {
-    const go = () => openRecipes($("#recipeInput").value);
+    const go = () => searchRecipes($("#recipeInput").value);
     $("#recipeSearchBtn").addEventListener("click", go);
     $("#recipeInput").addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
-    $$("[data-tag]", root).forEach((b) => b.addEventListener("click", () => openRecipes(b.getAttribute("data-tag"))));
+    $$("[data-tag]", root).forEach((b) => b.addEventListener("click", () => filterRecipesByTag(b.getAttribute("data-tag"))));
     $$("[data-recipe]", root).forEach((c) => c.addEventListener("click", () => openRecipe(c.getAttribute("data-recipe"))));
     const prev = $("#pgPrev"), next = $("#pgNext");
     if (prev) prev.addEventListener("click", () => { if (state.recipePage > 0) { state.recipePage--; render(); window.scrollTo({ top: 0, behavior: "smooth" }); } });

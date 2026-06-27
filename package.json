@@ -1,0 +1,12 @@
+{
+  "name": "recepie-explorer-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lint tooling for the Трпеза vanilla-JS frontend.",
+  "scripts": {
+    "lint": "eslint \"frontend/scripts/**/*.js\""
+  },
+  "devDependencies": {
+    "eslint": "^9.39.0"
+  }
+}

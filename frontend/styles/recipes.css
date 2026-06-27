@@ -17,7 +17,8 @@
 .recipe-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
 .recipe-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; cursor: pointer; transition: transform .25s, box-shadow .25s; }
 .recipe-card:hover { transform: translateY(-5px); box-shadow: 0 26px 46px -30px rgba(99,70,40,0.55); }
-.rc-photo { height: 168px; position: relative; }
+.rc-photo { height: 168px; position: relative; overflow: hidden; }
+.rc-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .rc-photo .scrim { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgba(44,38,32,0.42)); }
 .rc-ing { position: absolute; bottom: 12px; right: 12px; font-family: var(--mono); font-size: 11px; color: #FFF8EC; background: rgba(44,38,32,0.4); padding: 4px 9px; border-radius: 7px; }
 .rc-body { padding: 18px 20px 20px; }

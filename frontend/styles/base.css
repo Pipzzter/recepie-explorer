@@ -107,6 +107,38 @@ button { font-family: var(--sans); }
   padding: 6px 11px; border-radius: 20px; white-space: nowrap;
 }
 .model-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulseDot 2.4s ease-in-out infinite; display: inline-block; }
+button.model-badge { cursor: pointer; transition: background .2s, border-color .2s; }
+button.model-badge:hover { background: var(--green-line); }
+
+/* ---------- API key modal ---------- */
+.key-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  display: grid; place-items: center; padding: 20px;
+  background: rgba(44,38,32,0.46); backdrop-filter: blur(3px);
+  animation: fadeIn .2s ease;
+}
+.key-modal {
+  position: relative; width: 100%; max-width: 440px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+  padding: 26px 26px 22px; box-shadow: 0 24px 60px -20px rgba(60,40,20,0.45);
+}
+.key-modal h3 { font-family: var(--serif); font-size: 23px; font-weight: 600; margin: 4px 0 10px; letter-spacing: -0.01em; }
+.key-close {
+  position: absolute; top: 14px; right: 16px; font-size: 22px; line-height: 1;
+  color: var(--faint); background: none; border: none; cursor: pointer;
+}
+.key-close:hover { color: var(--terracotta); }
+.key-help { font-size: 13.5px; color: var(--muted); line-height: 1.55; margin: 0 0 16px; }
+.key-modal input {
+  width: 100%; font-family: var(--mono); font-size: 13px; color: var(--ink);
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 11px;
+  padding: 12px 14px; outline: none;
+}
+.key-modal input:focus { border-color: var(--terracotta); background: var(--surface); }
+.key-status { min-height: 18px; font-size: 12.5px; margin: 10px 2px 0; color: var(--muted); }
+.key-status.ok  { color: var(--green); }
+.key-status.err { color: var(--red); }
+.key-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
 
 /* =====================================================================
    SHARED PAGE BITS

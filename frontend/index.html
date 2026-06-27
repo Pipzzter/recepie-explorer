@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="mk">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/static/styles/home.css">
   <link rel="stylesheet" href="/static/styles/ingredient.css">
   <link rel="stylesheet" href="/static/styles/recipes.css">
+  <link rel="stylesheet" href="/static/styles/docs.css">
   <link rel="stylesheet" href="/static/styles/responsive.css">
 </head>
 <body>
@@ -23,26 +24,42 @@
         <span class="brand-mark"><span></span></span>
         <span>
           <span class="brand-name">Трпеза</span>
-          <span class="brand-tag">ingredient atlas</span>
         </span>
       </button>
 
       <nav class="nav">
-        <button class="nav-btn" data-nav="home" data-i18n="nav.home">Дома</button>
-        <button class="nav-btn" data-nav="ingredient" data-i18n="nav.ingredient">Состојка</button>
-        <button class="nav-btn" data-nav="recipes" data-i18n="nav.recipes">Рецепти</button>
+        <button class="nav-btn" data-nav="home" data-i18n="nav.home">Home</button>
+        <button class="nav-btn" data-nav="ingredient" data-i18n="nav.ingredient">Ingredient</button>
+        <button class="nav-btn" data-nav="recipes" data-i18n="nav.recipes">Recipes</button>
+        <button class="nav-btn" data-nav="docs" data-i18n="nav.docs">Docs</button>
         <span class="nav-divider"></span>
         <span class="lang-toggle" id="langToggle">
-          <button data-lang="mk" class="active">MK</button>
-          <button data-lang="en">EN</button>
+          <button data-lang="mk">MK</button>
+          <button data-lang="en" class="active">EN</button>
         </span>
-        <span class="model-badge" id="modelBadge"><span class="dot"></span><span id="modelName">…</span></span>
+        <button class="model-badge" id="keyBtn" type="button" title="API key"><span class="dot"></span><span id="modelName">…</span></button>
       </nav>
     </div>
   </header>
 
   <!-- ===================== VIEW MOUNT ===================== -->
   <div id="app"></div>
+
+  <!-- ===================== API KEY MODAL ===================== -->
+  <div class="key-overlay hidden" id="keyOverlay">
+    <div class="key-modal" role="dialog" aria-modal="true" aria-labelledby="keyTitle">
+      <button class="key-close" id="keyClose" type="button" aria-label="Close">×</button>
+      <div class="eyebrow" data-i18n="key.kicker">API key</div>
+      <h3 id="keyTitle" data-i18n="key.title">Add your OpenAI API key</h3>
+      <p class="key-help" data-i18n="key.help">Paste an OpenAI key to enable the full LLM pipeline. It is kept only in memory on the server — never logged or saved to disk.</p>
+      <input id="keyInput" type="password" autocomplete="off" spellcheck="false" placeholder="sk-…">
+      <div class="key-status" id="keyStatus"></div>
+      <div class="key-actions">
+        <button class="btn-soft" id="keyCancel" type="button" data-i18n="key.cancel">Cancel</button>
+        <button class="btn-primary" id="keySave" type="button" data-i18n="key.save">Save key</button>
+      </div>
+    </div>
+  </div>
 
   <!-- scripts load in dependency order (classic scripts share one global scope) -->
   <script src="/static/scripts/helpers.js"></script>
@@ -53,6 +70,7 @@
   <script src="/static/scripts/views/ingredient.js"></script>
   <script src="/static/scripts/views/recipes.js"></script>
   <script src="/static/scripts/views/detail.js"></script>
+  <script src="/static/scripts/views/docs.js"></script>
   <script src="/static/scripts/router.js"></script>
   <script src="/static/scripts/app.js"></script>
 </body>

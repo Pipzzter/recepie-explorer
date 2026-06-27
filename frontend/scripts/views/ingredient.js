@@ -1,4 +1,6 @@
 "use strict";
+/* exported renderIngredientPage, ingBodyHTML, loadingBody, resultsBody,
+   traceBody, errorBody, goIngredient, analyze */
 
 /* =====================================================================
    Трпеза — INGREDIENT page: own search bar + loading / results / trace

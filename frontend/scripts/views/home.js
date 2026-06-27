@@ -1,8 +1,19 @@
 "use strict";
+/* exported renderHome */
 
 /* =====================================================================
    Трпеза — HOME page: one smart search bar + feature cards + stats
    ===================================================================== */
+
+// Featured dishes for the hero mosaic — real photos from the dataset.
+const HOME_DISHES = [
+  { title: "Ајвар", index: 232,
+    image: "https://moirecepti.mk/content/uploads/2022/11/img_20221029_220644_375_resized-a47826-300x300.jpg" },
+  { title: "Тавче гравче", index: 7901,
+    image: "https://moirecepti.mk/content/uploads/2015/08/CIMG0050-62998e-300x300.jpg" },
+  { title: "Бурек", index: 1568,
+    image: "https://moirecepti.mk/content/uploads/2021/10/20210926_095351-7ee1ec-300x300.jpg" },
+];
 
 function renderHome() {
   const diamonds = Array.from({ length: 42 }, (_, i) =>
@@ -36,12 +47,11 @@ function renderHome() {
       </div>
 
       <div class="mosaic">
-        <div class="mosaic-tile tall" style="background:${hueGradient(0)}">
-          <div class="photo-tag">${esc(t("det.photo"))}</div>
-          <div class="scrim"><span>Ајвар</span></div>
-        </div>
-        <div class="mosaic-tile sm" style="background:${hueGradient(1)}"><div class="scrim"><span>Тавче гравче</span></div></div>
-        <div class="mosaic-tile sm" style="background:${hueGradient(2)}"><div class="scrim"><span>Бурек</span></div></div>
+        ${HOME_DISHES.map((dish, i) => `
+        <div class="mosaic-tile ${i === 0 ? "tall" : "sm"}" data-recipe="${dish.index}" style="background:${hueGradient(i)}">
+          <img src="${esc(dish.image)}" alt="${esc(dish.title)}" loading="lazy" onerror="this.remove()">
+          <div class="scrim"><span>${esc(dish.title)}</span></div>
+        </div>`).join("")}
       </div>
     </div>
     <div class="wrap"><div class="diamonds">${diamonds}</div></div>

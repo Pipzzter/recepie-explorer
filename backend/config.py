@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 
-# Load .env at import time so ANTHROPIC_API_KEY / OPENAI_API_KEY are available.
+# Load .env at import time so OPENAI_API_KEY is available.
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -16,5 +16,4 @@ DATA_PATH = PROJECT_ROOT / "data" / "parsed_recipes.json"
 USDA_CSV_PATH = PROJECT_ROOT / "data" / "usdaClasses.csv"
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
 
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")

@@ -5,16 +5,21 @@ Keeps the FastAPI I/O contract in one place, separate from the routing in api.py
 and the linking logic in the agent package.
 """
 
-from typing import Optional
 
 from pydantic import BaseModel
 
 from backend.agent import AgentTrace
 
-
 # ---------------------------------------------------------------------------
 # Recipe models
 # ---------------------------------------------------------------------------
+
+class ApiKeyIn(BaseModel):
+    """Request body for configuring an OpenAI key from the UI."""
+
+    key: str
+    model: str | None = None
+
 
 class IngredientInfo(BaseModel):
     quantity: str
@@ -73,8 +78,8 @@ class TraceOut(BaseModel):
     search_query: str
     tool_calls: list[ToolCallOut]
     candidates: list[CandidateOut]
-    selected_usda_id: Optional[str]
-    selected_usda_name: Optional[str]
+    selected_usda_id: str | None
+    selected_usda_name: str | None
     confidence: int
     confidence_level: str
     reasoning: str
@@ -104,10 +109,19 @@ def trace_to_out(trace: AgentTrace) -> TraceOut:
         english_translation=trace.english_translation,
         is_ambiguous=trace.is_ambiguous,
         needs_context=trace.needs_context,
-        context_recipes=[ContextRecipeOut(title=c.title, usage_note=c.usage_note) for c in trace.context_recipes],
+        context_recipes=[
+            ContextRecipeOut(title=c.title, usage_note=c.usage_note)
+            for c in trace.context_recipes
+        ],
         search_query=trace.search_query,
-        tool_calls=[ToolCallOut(name=t.name, args=t.args, result_summary=t.result_summary) for t in trace.tool_calls],
-        candidates=[CandidateOut(usda_id=c.usda_id, name=c.name, score=c.score, selected=c.selected) for c in trace.candidates],
+        tool_calls=[
+            ToolCallOut(name=t.name, args=t.args, result_summary=t.result_summary)
+            for t in trace.tool_calls
+        ],
+        candidates=[
+            CandidateOut(usda_id=c.usda_id, name=c.name, score=c.score, selected=c.selected)
+            for c in trace.candidates
+        ],
         selected_usda_id=trace.selected_usda_id,
         selected_usda_name=trace.selected_usda_name,
         confidence=trace.confidence,
@@ -125,7 +139,7 @@ def recipe_to_detail(idx: int, r: dict) -> RecipeDetail:
         title=r.get("title", ""),
         tags=r.get("tags", []),
         source=r.get("source", ""),
-        image=r.get("image", ""),
+        image=r.get("image") or "",
         instructions=r.get("instructions", []),
         ingredients=[
             IngredientInfo(

@@ -1,11 +1,12 @@
 "use strict";
+/* exported state, PAGE_SIZE, busy */
 
 /* =====================================================================
    Трпеза — central app state
    ===================================================================== */
 
 const state = {
-  lang: "mk",
+  lang: "en",
   view: "home",                                   // home | ingredient | recipes | detail
   query: "",
   ing: { stage: "empty", loadingStage: 1 },       // empty | loading | results | error
@@ -13,6 +14,7 @@ const state = {
   traceOpen: false,
   recipeList: [],
   recipeQuery: "",
+  recipeTag: "",
   recipePage: 0,
   recipeDetail: null,
   instrOpen: false,

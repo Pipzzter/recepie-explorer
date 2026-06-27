@@ -8,7 +8,6 @@ vanilla-JS frontend and exposes the REST API.
 
 import json
 from collections import Counter
-from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,25 +16,27 @@ from fastapi.staticfiles import StaticFiles
 
 from backend.agent import EntityLinkingAgent
 from backend.config import (
-    ANTHROPIC_API_KEY,
     DATA_PATH,
     FRONTEND_DIR,
     OPENAI_API_KEY,
     USDA_CSV_PATH,
 )
 from backend.schemas import (
+    ApiKeyIn,
+    IngredientInfo,
     LinkedIngredientOut,
     LinkedRecipeOut,
     RecipeDetail,
     RecipeSummary,
     TraceOut,
-    IngredientInfo,
     recipe_to_detail,
     trace_to_out,
 )
 
 # Paths that belong to the API / assets and must NOT be served the SPA shell.
-RESERVED_PREFIXES = {"api", "smart", "recipes", "link", "stats", "static", "docs", "redoc", "openapi.json"}
+# All data endpoints live under /api, so only these first path segments are
+# server-owned; every other path returns the SPA shell (English clean URLs).
+RESERVED_PREFIXES = {"api", "static", "docs", "redoc", "openapi.json"}
 
 # ---------------------------------------------------------------------------
 # App & CORS
@@ -61,7 +62,7 @@ app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 # Startup: load agent & recipes once
 # ---------------------------------------------------------------------------
 
-agent: Optional[EntityLinkingAgent] = None
+agent: EntityLinkingAgent | None = None
 recipes: list[dict] = []
 
 
@@ -77,7 +78,6 @@ async def startup():
     agent = EntityLinkingAgent(
         recipes_path=str(DATA_PATH),
         usda_csv_path=str(USDA_CSV_PATH),
-        anthropic_api_key=ANTHROPIC_API_KEY,
         openai_api_key=OPENAI_API_KEY,
     )
     print("  Agent ready")
@@ -98,7 +98,24 @@ async def health():
     }
 
 
-@app.get("/smart")
+@app.post("/api/key")
+async def set_api_key(body: ApiKeyIn):
+    """Configure an OpenAI API key at runtime so the full LLM pipeline is enabled.
+
+    The key is held only in memory for this server process — it is never logged
+    or written to disk. Returns the active engine on success.
+    """
+    if not agent:
+        raise HTTPException(status_code=503, detail="Agent not initialised")
+    if not agent.configure_openai(body.key, model=body.model or None):
+        raise HTTPException(
+            status_code=400,
+            detail="The OpenAI API key was rejected. Check the key and try again.",
+        )
+    return {"status": "ok", "provider": agent.provider, "engine": agent.model}
+
+
+@app.get("/api/smart")
 async def smart(q: str = Query(..., description="Free-text query — ingredient or recipe")):
     """Classify the query so the UI can route it: 'ingredient' or 'recipe'."""
     if not agent:
@@ -106,20 +123,31 @@ async def smart(q: str = Query(..., description="Free-text query — ingredient 
     return {"query": q, "kind": agent.classify_query(q)}
 
 
-@app.get("/recipes", response_model=list[RecipeSummary])
+@app.get("/api/recipes", response_model=list[RecipeSummary])
 async def list_recipes(
-    q: str = Query("", description="Search in title or tags"),
+    q: str = Query("", description="Free-text search in title or tags"),
+    tag: str = Query("", description="Filter by exact category tag (case-insensitive)"),
     limit: int = Query(20, le=100),
     offset: int = Query(0, ge=0),
 ):
-    """List / search recipes from the dataset."""
+    """List / search recipes from the dataset.
+
+    ``q`` is a fuzzy substring search over title and tags; ``tag`` keeps only
+    recipes that actually carry that exact category tag. Both can be combined.
+    """
     filtered = recipes
     if q:
         ql = q.lower()
         filtered = [
-            r for r in recipes
+            r for r in filtered
             if ql in r.get("title", "").lower()
-            or any(ql in tag.lower() for tag in r.get("tags", []))
+            or any(ql in t.lower() for t in r.get("tags", []))
+        ]
+    if tag:
+        tl = tag.lower()
+        filtered = [
+            r for r in filtered
+            if any(t.lower() == tl for t in r.get("tags", []))
         ]
 
     page = filtered[offset: offset + limit]
@@ -130,12 +158,13 @@ async def list_recipes(
             tags=r.get("tags", []),
             ingredient_count=len(r.get("ingredients", [])),
             source=r.get("source", ""),
+            image=r.get("image") or "",
         )
         for r in page
     ]
 
 
-@app.get("/recipes/{index}", response_model=RecipeDetail)
+@app.get("/api/recipes/{index}", response_model=RecipeDetail)
 async def get_recipe(index: int):
     """Get a single recipe by its index in the dataset."""
     if index < 0 or index >= len(recipes):
@@ -143,15 +172,17 @@ async def get_recipe(index: int):
     return recipe_to_detail(index, recipes[index])
 
 
-@app.get("/link/ingredient", response_model=TraceOut)
-async def link_ingredient(name: str = Query(..., description="Ingredient name (Macedonian or English)")):
+@app.get("/api/link/ingredient", response_model=TraceOut)
+async def link_ingredient(
+    name: str = Query(..., description="Ingredient name (Macedonian or English)"),
+):
     """Run the agentic entity linker on a single ingredient (full 5-stage trace)."""
     if not agent:
         raise HTTPException(status_code=503, detail="Agent not initialised")
     return trace_to_out(agent.link(name))
 
 
-@app.get("/link/recipe/{index}", response_model=LinkedRecipeOut)
+@app.get("/api/link/recipe/{index}", response_model=LinkedRecipeOut)
 async def link_recipe(index: int):
     """Run the agentic entity linker on every ingredient of a recipe."""
     if not agent:
@@ -177,7 +208,7 @@ async def link_recipe(index: int):
     return LinkedRecipeOut(recipe=recipe_to_detail(index, recipe), linked_ingredients=linked)
 
 
-@app.get("/stats")
+@app.get("/api/stats")
 async def stats():
     """Dataset statistics."""
     all_tags = [tag for r in recipes for tag in r.get("tags", [])]
@@ -192,9 +223,9 @@ async def stats():
 # ---------------------------------------------------------------------------
 # Frontend (SPA) — clean URLs without a #hash
 #
-# The root and any client-side route (/sostojka, /recepti, /recept/{i}) all
-# return index.html; the JS router renders the right page. Declared last so it
-# never shadows the API routes above.
+# The root and any client-side route (/ingredient, /recipes, /recipe/{i},
+# /documentation) all return index.html; the JS router renders the right page.
+# Declared last so it never shadows the API routes above.
 # ---------------------------------------------------------------------------
 
 @app.get("/", include_in_schema=False)

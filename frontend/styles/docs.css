@@ -1,0 +1,41 @@
+/* =====================================================================
+   Трпеза — DOCUMENTATION page
+   ===================================================================== */
+
+.doc-wrap { max-width: 880px; margin: 0 auto; padding: 40px 32px 80px; }
+.doc-lead { font-size: 16px; color: var(--muted); line-height: 1.6; margin: 12px 0 0; }
+
+.doc-section { margin-top: 46px; }
+.doc-section > h3 {
+  font-family: var(--serif); font-size: 26px; font-weight: 600;
+  margin: 0 0 8px; letter-spacing: -0.01em;
+}
+.doc-section > p { font-size: 15px; color: var(--muted); line-height: 1.65; margin: 0 0 18px; }
+
+.doc-stages { display: grid; gap: 10px; margin: 18px 0; }
+.doc-stage {
+  display: flex; gap: 16px; align-items: flex-start;
+  background: var(--surface); border: 1px solid var(--line-2);
+  border-radius: 13px; padding: 16px 18px;
+}
+.doc-stage-num {
+  font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--terracotta);
+  background: var(--chip-bg); border-radius: 8px; padding: 6px 9px; flex: 0 0 auto;
+}
+.doc-stage h4 { font-size: 15px; margin: 2px 0 4px; }
+.doc-stage p { font-size: 14px; color: var(--muted); line-height: 1.55; margin: 0; }
+
+.doc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+.doc-card {
+  background: var(--surface-3); border: 1px solid var(--line-2);
+  border-radius: 13px; padding: 16px 18px;
+}
+.doc-card h5 { font-size: 14px; margin: 0 0 6px; }
+.doc-card p { font-size: 13.5px; color: var(--muted); line-height: 1.55; margin: 0; }
+
+.doc-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
+
+@media (max-width: 640px) {
+  .doc-grid { grid-template-columns: 1fr; }
+  .doc-wrap { padding: 28px 20px 60px; }
+}
