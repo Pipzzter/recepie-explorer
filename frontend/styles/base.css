@@ -107,8 +107,17 @@ button { font-family: var(--sans); }
   padding: 6px 11px; border-radius: 20px; white-space: nowrap;
 }
 .model-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulseDot 2.4s ease-in-out infinite; display: inline-block; }
-button.model-badge { cursor: pointer; transition: background .2s, border-color .2s; }
+button.model-badge { cursor: pointer; transition: background .2s, border-color .2s, color .2s; }
 button.model-badge:hover { background: var(--green-line); }
+
+.model-badge--add-key {
+  color: var(--amber-dk); background: var(--amber-bg); border-color: var(--amber-line);
+  font-weight: 600;
+}
+button.model-badge--add-key:hover { background: var(--amber-line); }
+.model-badge--add-key .dot { display: none; }
+.key-icon { flex-shrink: 0; }
+.key-icon.hidden { display: none; }
 
 /* ---------- API key modal ---------- */
 .key-overlay {

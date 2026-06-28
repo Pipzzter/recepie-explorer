@@ -28,11 +28,23 @@ async function init() {
     const h = await api.health();
     if (h.recipes_loaded) state.recipesTotal = h.recipes_loaded;
     if (h.usda_entries) state.usdaTotal = h.usda_entries;
-    $("#modelName").textContent = h.engine || "rule-based";
+    setEngineDisplay(h.engine || "rule-based");
     if (state.view === "home") render();   // refresh stats once totals arrive
   } catch (_) {
-    $("#modelName").textContent = "rule-based";
+    setEngineDisplay("rule-based");
   }
+}
+
+/* ---------- Engine display: swap badge style based on whether a key is set ---------- */
+function setEngineDisplay(engine) {
+  const btn = $("#keyBtn");
+  const icon = $("#keyIcon");
+  const name = $("#modelName");
+  const isRuleBased = !engine || engine === "rule-based";
+  btn.classList.toggle("model-badge--add-key", isRuleBased);
+  icon.classList.toggle("hidden", !isRuleBased);
+  name.textContent = isRuleBased ? "Add API key" : engine;
+  btn.title = isRuleBased ? "Click to add your OpenAI API key" : "Click to update your API key";
 }
 
 /* ---------- API-key modal: enter an OpenAI key to enable the LLM pipeline ---------- */
@@ -61,7 +73,7 @@ function setupKeyModal() {
     setStatus(t("key.saving"), "");
     try {
       const res = await api.setKey(key);
-      $("#modelName").textContent = res.engine || "openai";
+      setEngineDisplay(res.engine || "openai");
       setStatus(t("key.ok", { engine: res.engine || "openai" }), "ok");
       input.value = "";
       setTimeout(close, 1100);
