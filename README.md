@@ -4,6 +4,68 @@ A visualization tool for an LLM-driven agentic entity linking system that maps M
 
 ---
 
+## Setup & Quick Start
+
+### Prerequisites
+
+- Python 3.9 or later
+- An [OpenAI API key](https://platform.openai.com/api-keys) *(optional — the app works without one in rule-based fallback mode)*
+
+### 1. Create and activate a virtual environment
+
+```bash
+python -m venv venv
+```
+
+**Windows:**
+```bash
+venv\Scripts\activate
+```
+
+**macOS/Linux:**
+```bash
+source venv/bin/activate
+```
+
+### 2. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Configure your API key
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and set your key:
+
+```
+OPENAI_API_KEY=sk-...
+```
+
+Skip this step if you want to run in rule-based fallback mode (no LLM calls).
+
+### 4. Start the server
+
+Run from the project root:
+
+```bash
+uvicorn backend.api:app --port 8000
+```
+
+### 5. Open the app
+
+| URL | What you get |
+|---|---|
+| `http://localhost:8000` | Main UI |
+| `http://localhost:8000/docs` | Interactive API docs (Swagger) |
+
+You can also supply your OpenAI key at runtime without editing `.env`: click the **API key** button in the app header and paste it in. The key is held in memory only and never written to disk.
+
+---
+
 ## What it does
 
 The application takes a Macedonian recipe and answers one question for each ingredient: *which USDA food entity does this ingredient correspond to?*
